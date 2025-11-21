@@ -1,16 +1,20 @@
+import os
 import pandas as pd
-from preprocessing import preprocess_dataframe
-from model import train_model
 
-# --- 1. Load dataset ---
-df = pd.read_csv("Supermarket Sales Cleaned.csv")
+possible_files = [
+    "Supermarket Sales Cleaned.csv",
+    "dataset.csv",
+    "data.csv"
+]
 
-# --- 2. Tentukan kolom teks & label ---
-TEXT_COL = "Review"        # ganti sesuai dataset
-LABEL_COL = "Rating"       # ganti sesuai dataset
+df = None
 
-# --- 3. Preprocessing ---
-df = preprocess_dataframe(df, TEXT_COL)
+for file in possible_files:
+    if os.path.exists(file):
+        df = pd.read_csv(file)
+        print("Loaded:", file)
+        break
 
-# --- 4. Training model ---
-train_model(df, TEXT_COL, LABEL_COL)
+if df is None:
+    st.error("Dataset tidak ditemukan. Pastikan file CSV ada dalam folder proyek Streamlit.")
+    st.stop()
