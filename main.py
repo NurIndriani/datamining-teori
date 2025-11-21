@@ -3,7 +3,7 @@ from preprocessing import preprocess_dataframe
 from model import train_model
 
 # --- 1. Load dataset ---
-df = pd.read_csv("Supermarket Sales Cleaned(1).csv")
+df = pd.read_csv("Supermarket Sales Cleaned.csv")
 
 # --- 2. Tentukan kolom teks & label ---
 TEXT_COL = "Review"        # ganti sesuai dataset
