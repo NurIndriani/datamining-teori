@@ -1,33 +1,37 @@
-import re
 import pandas as pd
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
-# --- 1. Buat stemmer & stopword ---
-stem_factory = StemmerFactory()
-stemmer = stem_factory.create_stemmer()
+def preprocess_dataframe(df):
+    """ Preprocessing untuk dataset Supermarket Sales """
 
-stop_factory = StopWordRemoverFactory()
-stopword = stop_factory.create_stop_word_remover()
+    df = df.copy()
 
-def clean_text(text):
-    if not isinstance(text, str):
-        return ""
+    # ---- 1. Drop kolom yang tidak dibutuhkan ----
+    drop_cols = ["Invoice ID", "Date", "Time"]  # tidak relevan untuk prediksi rating
+    for col in drop_cols:
+        if col in df.columns:
+            df = df.drop(col, axis=1)
 
-    text = text.lower()
-    text = re.sub(r'http\S+|www.\S+', '', text)     # hapus URL
-    text = re.sub(r'[^a-zA-Z\s]', ' ', text)        # hapus simbol
-    text = re.sub(r'\s+', ' ', text).strip()        # hapus spasi ganda
-    
-    # Buang stopword
-    text = stopword.remove(text)
+    # ---- 2. Handle missing value ----
+    df = df.fillna(method="ffill")
 
-    # Stemming
-    text = stemmer.stem(text)
+    # ---- 3. Pisahkan target ----
+    if "Rating" not in df.columns:
+        raise ValueError("Kolom 'Rating' tidak ditemukan dalam dataset")
 
-    return text
+    y = df["Rating"]
+    X = df.drop("Rating", axis=1)
 
-def preprocess_dataframe(df, text_column):
-    """ Membersihkan seluruh kolom text """
-    df[text_column] = df[text_column].astype(str).apply(clean_text)
-    return df
+    # ---- 4. Encode kolom kategori ----
+    le_dict = {}
+    for col in X.columns:
+        if X[col].dtype == "object":
+            le = LabelEncoder()
+            X[col] = le.fit_transform(X[col])
+            le_dict[col] = le
+
+    # ---- 5. Normalisasi fitur numerik ----
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    return X, y, le_dict, scaler
