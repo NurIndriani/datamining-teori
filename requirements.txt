@@ -2,3 +2,5 @@ pandas
 scikit-learn
 Sastrawi
 numpy
+nltk
+joblib
